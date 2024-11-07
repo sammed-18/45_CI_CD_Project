@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Java CI/CD Pipeline
 
 on:
   push:
@@ -11,18 +11,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
+      # Step 1: Check out the repository
+      - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      # Step 2: Set up JDK 19 for Maven build
+      - name: Set up JDK 19
+        uses: actions/setup-java@v2
         with:
-          node-version: '14'
+          java-version: '19'
 
-      - name: Install dependencies
-        run: npm install
+      # Step 3: Cache Maven dependencies to speed up the build process
+      - name: Cache Maven dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Run tests
-        run: npm test
+      # Step 4: Build and test with Maven
+      - name: Build and test
+        run: mvn clean install
